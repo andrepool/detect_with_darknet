@@ -1,4 +1,7 @@
-## Extreme simple .cpp application to demonstrate use of darknet/YOLO in custom application
+## Detector with libdarknet.so
+Extreme simple .cpp detector to demonstrate use of darknet/YOLO in custom application
+
+Based on darket test_detector and functions
 
 TODO have to find a way provide the large yolov4_final.weights file
 
@@ -14,8 +17,8 @@ TODO have to find a way provide the large yolov4_final.weights file
 * sudo cp libdarknet.so /usr/local/lib
 * sudo cp include/darknet.h /usr/local/include
 * git clone https://github.com/andrepool/robocup_ml.git ~/robocup_ml
-cd detect_with_darknet
-make
+* cd detect_with_darknet
+* make
 
 
 tested with darknet version
