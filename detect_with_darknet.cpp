@@ -134,9 +134,10 @@ void show_objects(const Mat image, const frame_t objects ){
 int main ( ) {
 	printf("INFO   stand alone darknet detector\n");
 
-	const int avg_frames = 3; // default value run_detector 3
-	const float hier_thresh = 0; // 0.5; // not used, see custom_get_region_detections, default value run_detector 0.5, detect_in_thread same same as thresh
+	const float beta_nms = 0.6; // net->layers[last yolo layer].beta_nms (../robocup_ml/yolov4.cfg)
+	const int classes = 5; // net->layers[last yolo layer].classes (../robocup_ml/yolov4.cfg)
 	network *net;
+	const NMS_KIND nms_kind = GREEDY_NMS; // net->layers[last yolo layer].nms_kind (../robocup_ml/yolov4.cfg)
 	const float nms_thresh = 0.45; // default value demo
 	frame_t objects;
 	objects.frame_id = 0;
@@ -151,19 +152,6 @@ int main ( ) {
 	calculate_binary_weights(*net);
 
 	srand(2222222); // set the seed, but is the random function used during detect?
-
-	// NOTE: somewhat strange way of setting l.classes (5), l.nms_kind (GREEDY_NMS) and l.beta_nms (0.60)
-	// get the values from the last YOLO layer and set mean_alpha to 0.333 (which apparantly is not used)
-	// first set to latest layer and then overwrite layer with the last found YOLO layer
-	layer l = net->layers[net->n - 1];
-	for( int ii = 0; ii < net->n; ++ii) {
-		layer lc = net->layers[ii];
-		if( lc.type == YOLO ) {
-			lc.mean_alpha = 1.0 / avg_frames;
-			l = lc;
-		}
-	}
-
 
 	while( 1 ) {
 		// use opencv to read image
@@ -181,16 +169,17 @@ int main ( ) {
 		// create bounding boxes (with relative size) for the detected objects
 		int nboxes = 0;
 		// get_network_boxes(net, width, height, threshold, hier_threshold, map, relative, num_boxes, letter);
-		detection *dets = get_network_boxes(net, 1, 1, thresh, hier_thresh, 0, 1, &nboxes, 0);
+		// NOTE: hier_threshold not used, custom_get_region_detections
+		detection *dets = get_network_boxes(net, 1, 1, thresh, 0, 0, 1, &nboxes, 0);
 
 		// one detected box can be classified for multiple classes, find the best class for each box
 		// classes = 5, nms_kind = 1 (GREEDY_NMS) and beta_nms = 0.60
 		// NOTE: nms_thresh is threshold related to intersection over union
 		// NOTE: in this case beta_nms is not used because nms_kind = GREEDY_NMS
-		diounms_sort(dets, nboxes, l.classes, nms_thresh, l.nms_kind, l.beta_nms); // https://github.com/Zzh-tju/DIoU-darknet
+		diounms_sort(dets, nboxes, classes, nms_thresh, nms_kind, beta_nms); // https://github.com/Zzh-tju/DIoU-darknet
 
 		// copy the objects to a struct
-		objects = detection_to_struct(dets, nboxes, l.classes, calcTime);
+		objects = detection_to_struct(dets, nboxes, classes, calcTime);
 		if( objects.frame_id % 10 == 0 ) {
 			print_objects(objects);
 		}
