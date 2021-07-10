@@ -141,7 +141,7 @@ int main ( ) {
 	frame_t objects;
 	objects.frame_id = 0;
 	const float thresh = 0.2; // threshold to accept object, default value run_detector 0.25
-	Mat orig_mat;
+	Mat orig_mat_bgr, orig_mat_rgb;
 
 	// NOTE load_network_custom also performs fuse_conv_batchnorm
 	// load_network_custom(cfg_file_name, weights_file_name, clear, batch_size);
@@ -154,10 +154,11 @@ int main ( ) {
 	while( 1 ) {
 		// use opencv to read image
 		// orig_mat = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
-		orig_mat = imread("../robocup_ml/20190706/r5/cam0_20190706_015058.jpg", IMREAD_COLOR);
+		orig_mat_bgr = imread("../robocup_ml/20190706/r5/cam0_20190706_015058.jpg", IMREAD_COLOR);
+	    cvtColor(orig_mat_bgr, orig_mat_rgb, COLOR_BGR2RGB);
 
 		// convert and resize to darknet image type (int w, int h, int c, float *data) required by darknet
-		image orig_image = mat_to_image(orig_mat);
+		image orig_image = mat_to_image(orig_mat_rgb);
 		image res_img = resize_image(orig_image, net->w, net->h); // resize to 416x416
 
 		// perform the object detection
@@ -180,7 +181,7 @@ int main ( ) {
 			print_objects(objects);
 		}
 
-		show_objects( orig_mat, objects );
+		show_objects( orig_mat_bgr, objects );
 
 		free_detections(dets, nboxes);
 		free_image(orig_image);
