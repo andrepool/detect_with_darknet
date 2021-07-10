@@ -134,7 +134,7 @@ void show_objects(const Mat image, const frame_t objects ){
 int main ( ) {
 	printf("INFO   stand alone darknet detector\n");
 
-	// const int avg_frames = 3; // default value run_detector 3
+	const int avg_frames = 3; // default value run_detector 3
 	const float hier_thresh = 0; // 0.5; // not used, see custom_get_region_detections, default value run_detector 0.5, detect_in_thread same same as thresh
 	network *net;
 	const float nms_thresh = 0.45; // default value demo
@@ -163,6 +163,7 @@ int main ( ) {
 			l = lc;
 		}
 	}
+
 
 	while( 1 ) {
 		// use opencv to read image
