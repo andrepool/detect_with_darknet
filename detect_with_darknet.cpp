@@ -134,11 +134,10 @@ void show_objects(const Mat image, const frame_t objects ){
 int main ( ) {
 	printf("INFO   stand alone darknet detector\n");
 
-	const float beta_nms = 0.6; // net->layers[last yolo layer].beta_nms (../robocup_ml/yolov4.cfg)
 	const int classes = 5; // net->layers[last yolo layer].classes (../robocup_ml/yolov4.cfg)
 	network *net;
 	const NMS_KIND nms_kind = GREEDY_NMS; // net->layers[last yolo layer].nms_kind (../robocup_ml/yolov4.cfg)
-	const float nms_thresh = 0.45; // default value demo
+	const float nms_thresh = 0.45; // threshold related to intersection over union, default value demo
 	frame_t objects;
 	objects.frame_id = 0;
 	const float thresh = 0.2; // threshold to accept object, default value run_detector 0.25
@@ -173,10 +172,7 @@ int main ( ) {
 		detection *dets = get_network_boxes(net, 1, 1, thresh, 0, 0, 1, &nboxes, 0);
 
 		// one detected box can be classified for multiple classes, find the best class for each box
-		// classes = 5, nms_kind = 1 (GREEDY_NMS) and beta_nms = 0.60
-		// NOTE: nms_thresh is threshold related to intersection over union
-		// NOTE: in this case beta_nms is not used because nms_kind = GREEDY_NMS
-		diounms_sort(dets, nboxes, classes, nms_thresh, nms_kind, beta_nms); // https://github.com/Zzh-tju/DIoU-darknet
+		diounms_sort(dets, nboxes, classes, nms_thresh, nms_kind, 0); // https://github.com/Zzh-tju/DIoU-darknet
 
 		// copy the objects to a struct
 		objects = detection_to_struct(dets, nboxes, classes, calcTime);
