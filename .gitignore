@@ -1,2 +1,4 @@
+cookie
 detect_with_darknet.o
 detect_with_darknet
+yolov4_final.weights

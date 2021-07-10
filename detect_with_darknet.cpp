@@ -143,7 +143,6 @@ int main ( ) {
 	const float thresh = 0.2; // threshold to accept object, default value run_detector 0.25
 	Mat orig_mat;
 
-	// WARNING: have to find a way to provide the large yolov4_final.weights
 	// NOTE load_network_custom also performs fuse_conv_batchnorm
 	// load_network_custom(cfg_file_name, weights_file_name, clear, batch_size);
 	net = load_network_custom((char *) "../robocup_ml/yolov4.cfg", (char *)"./yolov4_final.weights", 1, 1); // clear and batch size 1

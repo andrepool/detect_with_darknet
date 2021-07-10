@@ -3,8 +3,6 @@ Extreme simple .cpp detector to demonstrate use of darknet/YOLO in custom applic
 
 Based on darket test_detector and functions
 
-TODO have to find a way provide the large yolov4_final.weights file
-
 * compiles against libdarknet.so
 * makes use of the config files in https://github.com/andrepool/robocup_ml.git
 * tested on Ubuntu 20.04
@@ -17,7 +15,11 @@ TODO have to find a way provide the large yolov4_final.weights file
 * sudo cp libdarknet.so /usr/local/lib
 * sudo cp include/darknet.h /usr/local/include
 * git clone https://github.com/andrepool/robocup_ml.git ~/robocup_ml
-* cd detect_with_darknet
+* git clone https://github.com/andrepool/detect_with_darknet.git ~/detect_with_darknet
+* cd ~/detect_with_darknet
+* fileid="12-D5W1UotDhShUEjGuipH3R7uE9YL4zq"
+* curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=${fileid}" > /dev/null
+* curl -Lb ./cookie "https://drive.google.com/uc?export=download&confirm=`awk '/download/ {print $NF}' ./cookie`&id=${fileid}" -o yolov4_final.weights
 * make
 
 
