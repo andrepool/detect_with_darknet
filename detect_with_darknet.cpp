@@ -134,23 +134,41 @@ void show_objects(const Mat image, const frame_t objects ){
 int main ( ) {
 	printf("INFO   stand alone darknet detector\n");
 
-	float thresh = 0.2;
-	float hier_thresh = 0.5;
+	// const int avg_frames = 3; // default value run_detector 3
+	const float hier_thresh = 0; // 0.5; // not used, see custom_get_region_detections, default value run_detector 0.5, detect_in_thread same same as thresh
+	network *net;
+	const float nms_thresh = 0.45; // default value demo
 	frame_t objects;
 	objects.frame_id = 0;
-	network *net;
+	const float thresh = 0.2; // threshold to accept object, default value run_detector 0.25
 	Mat orig_mat;
 
 	// WARNING: have to find a way to provide the large yolov4_final.weights
-	net = load_network_custom((char *) "../robocup_ml/yolov4.cfg", (char *)"./yolov4_final.weights", 1, 1);
+	// NOTE load_network_custom also performs fuse_conv_batchnorm
+	// load_network_custom(cfg_file_name, weights_file_name, clear, batch_size);
+	net = load_network_custom((char *) "../robocup_ml/yolov4.cfg", (char *)"./yolov4_final.weights", 1, 1); // clear and batch size 1
 
 	calculate_binary_weights(*net);
+
+	srand(2222222); // set the seed, but is the random function used during detect?
+
+	// NOTE: somewhat strange way of setting l.classes (5), l.nms_kind (GREEDY_NMS) and l.beta_nms (0.60)
+	// get the values from the last YOLO layer and set mean_alpha to 0.333 (which apparantly is not used)
+	// first set to latest layer and then overwrite layer with the last found YOLO layer
+	layer l = net->layers[net->n - 1];
+	for( int ii = 0; ii < net->n; ++ii) {
+		layer lc = net->layers[ii];
+		if( lc.type == YOLO ) {
+			lc.mean_alpha = 1.0 / avg_frames;
+			l = lc;
+		}
+	}
 
 	while( 1 ) {
 		// use opencv to read image
 		orig_mat = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
 
-		// convert and resize to image type (3 x int for size/color + array of float32) required by darknet
+		// convert and resize to darknet image type (int w, int h, int c, float *data) required by darknet
 		image origImg = mat_to_image(orig_mat);
 		image res_img = resize_image(origImg, net->w, net->h); // resize to 416x416
 
@@ -161,11 +179,14 @@ int main ( ) {
 
 		// create bounding boxes (with relative size) for the detected objects
 		int nboxes = 0;
+		// get_network_boxes(net, width, height, threshold, hier_threshold, map, relative, num_boxes, letter);
 		detection *dets = get_network_boxes(net, 1, 1, thresh, hier_thresh, 0, 1, &nboxes, 0);
 
-		// ? some kind of sorting ?
-		layer l = net->layers[net->n - 1]; // layers = 5, nms_kind = 4 and beta_nms = 0.60
-		diounms_sort(dets, nboxes, l.classes, 0.45, l.nms_kind, l.beta_nms); // https://github.com/Zzh-tju/DIoU-darknet
+		// one detected box can be classified for multiple classes, find the best class for each box
+		// classes = 5, nms_kind = 1 (GREEDY_NMS) and beta_nms = 0.60
+		// NOTE: nms_thresh is threshold related to intersection over union
+		// NOTE: in this case beta_nms is not used because nms_kind = GREEDY_NMS
+		diounms_sort(dets, nboxes, l.classes, nms_thresh, l.nms_kind, l.beta_nms); // https://github.com/Zzh-tju/DIoU-darknet
 
 		// copy the objects to a struct
 		objects = detection_to_struct(dets, nboxes, l.classes, calcTime);
