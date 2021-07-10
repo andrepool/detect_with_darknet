@@ -3,7 +3,7 @@
 
 // Extreme simple application to demonstrate use of darknet/YOLO in custom application
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 
 #include <opencv2/imgcodecs.hpp>
@@ -20,7 +20,7 @@ using namespace cv;
 #define OUTSIDE_COLOR Scalar(255,0,0)
 #define GOAL_POST_COLOR Scalar(255,255,0)
 
-typedef struct{
+typedef struct {
 	uint32_t class_id;
 	float x;
 	float y;
@@ -29,13 +29,13 @@ typedef struct{
 	float confidence;
 } object_t;
 
-typedef struct{
+typedef struct {
 	uint32_t frame_id;
 	float calcTime; // in seconds
 	std::vector<object_t> obj;
 } frame_t;
 
-frame_t detection_to_struct(detection *dets, int nboxes, int classes, double calcTime) {
+frame_t detection_to_struct(const detection *dets, const int nboxes, const int classes, const double calcTime) {
 	frame_t objects;
 
 	static uint32_t frame_id = 0;
@@ -75,7 +75,7 @@ void print_objects(const frame_t objects) {
 }
 
 // copied from darknet
-extern "C" image mat_to_image(Mat input) {
+extern "C" image mat_to_image(const Mat input) {
 	int w = input.cols;
 	int h = input.rows;
 	int c = input.channels();
@@ -92,10 +92,10 @@ extern "C" image mat_to_image(Mat input) {
 	return im;
 }
 
-void show_objects(const Mat image, const frame_t objects ){
+void show_objects(const Mat orig_mat, const frame_t objects ){
 	char buf[256];
 	sprintf(buf, "frame %5u    %5.0f ms     fps %4.2f", objects.frame_id, objects.calcTime*1000.0, 1/objects.calcTime);
-	putText(image, buf, Point(10, 14), 1, 1, Scalar(255,255,255), 1);
+	putText(orig_mat, buf, Point(10, 14), 1, 1, Scalar(255,255,255), 1);
 
 	for( size_t ii = 0; ii < objects.obj.size(); ii++ ) {
 		object_t obj = objects.obj[ii];
@@ -121,13 +121,13 @@ void show_objects(const Mat image, const frame_t objects ){
 		int h = obj.h * 800;
 
 		// rectangle(image, rectScaled, color);
-		rectangle(image, Rect(x,y,w,h), color);
+		rectangle(orig_mat, Rect(x,y,w,h), color);
 
 		sprintf(buf, "%2.0f%%", 100.0 * obj.confidence);
-		putText(image, buf, Point(x, y), 1, 1, Scalar(255,255,255), 1);
+		putText(orig_mat, buf, Point(x, y), 1, 1, Scalar(255,255,255), 1);
 	}
 
-	imshow("Display window", image);
+	imshow("detect result", orig_mat);
 	waitKey(1);
 }
 
@@ -153,11 +153,12 @@ int main ( ) {
 
 	while( 1 ) {
 		// use opencv to read image
-		orig_mat = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
+		// orig_mat = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
+		orig_mat = imread("../robocup_ml/20190706/r5/cam0_20190706_015058.jpg", IMREAD_COLOR);
 
 		// convert and resize to darknet image type (int w, int h, int c, float *data) required by darknet
-		image origImg = mat_to_image(orig_mat);
-		image res_img = resize_image(origImg, net->w, net->h); // resize to 416x416
+		image orig_image = mat_to_image(orig_mat);
+		image res_img = resize_image(orig_image, net->w, net->h); // resize to 416x416
 
 		// perform the object detection
 		double timeStart = get_time_point();
@@ -182,7 +183,7 @@ int main ( ) {
 		show_objects( orig_mat, objects );
 
 		free_detections(dets, nboxes);
-		free_image(origImg);
+		free_image(orig_image);
 		free_image(res_img);
 	}
 
