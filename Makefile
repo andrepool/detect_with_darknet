@@ -6,7 +6,7 @@ OBJECTS = $(TARGET).o
 
 MAKEFLAGS = -j8
 
-CFLAGS = -g3 -Ofast -m64 -ansi -std=c++11 -Wall -Wextra -Wpedantic -Werror -Wfatal-errors
+CFLAGS = -Ofast -std=c++1z -pipe -Wall -Wextra -Wpedantic -Werror -Wfatal-errors
 
 LDFLAGS = -std=c++11
 LDFLAGS+= -lcuda -lcudart -lcublas -lcurand -lcudnn

@@ -153,8 +153,8 @@ int main ( ) {
 
 	while( 1 ) {
 		// use opencv to read image
-		// orig_mat = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
-		orig_mat_bgr = imread("../robocup_ml/20190706/r5/cam0_20190706_015058.jpg", IMREAD_COLOR);
+		orig_mat_bgr = imread("../robocup_ml/20200123/r1/cam0_20200123_210013.jpg", IMREAD_COLOR);
+		// orig_mat_bgr = imread("../robocup_ml/20190706/r5/cam0_20190706_015058.jpg", IMREAD_COLOR);
 	    cvtColor(orig_mat_bgr, orig_mat_rgb, COLOR_BGR2RGB);
 
 		// convert and resize to darknet image type (int w, int h, int c, float *data) required by darknet
